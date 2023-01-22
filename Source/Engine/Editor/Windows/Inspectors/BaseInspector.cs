@@ -22,12 +22,13 @@ public class BaseInspector
 		float listBoxHeight = itemCount * lineHeight;
 		listBoxHeight += 8f; // Header spacing
 
-		if ( ImGui.BeginListBox( "##inspector_table", new Vector2( -1, listBoxHeight ) ) )
+		using ( ImGuiX.Scope scope = ImGuiX.ListBox( "##inspector_table", new Vector2( -1, listBoxHeight ) ) )
 		{
+			if ( !scope.Visible )
+				return;
+
 			ImGuiX.TextBold( title );
 			DrawTable( items );
-
-			ImGui.EndListBox();
 		}
 	}
 
@@ -56,8 +57,11 @@ public class BaseInspector
 
 	protected static void DrawTable( (string, string)[] items )
 	{
-		if ( ImGui.BeginTable( $"##details", 2, ImGuiTableFlags.PadOuterX | ImGuiTableFlags.SizingStretchProp ) )
+		using ( ImGuiX.Scope scope = ImGuiX.Table( $"##details", 2, ImGuiTableFlags.PadOuterX | ImGuiTableFlags.SizingStretchProp ) )
 		{
+			if ( !scope.Visible )
+				return;
+
 			ImGui.TableSetupColumn( "Name", ImGuiTableColumnFlags.WidthFixed, 100f );
 			ImGui.TableSetupColumn( "Text", ImGuiTableColumnFlags.WidthStretch, 1f );
 
@@ -71,8 +75,6 @@ public class BaseInspector
 				ImGui.TableNextColumn();
 				ImGui.Text( line.Item2 );
 			}
-
-			ImGui.EndTable();
 		}
 	}
 

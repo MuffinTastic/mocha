@@ -78,8 +78,11 @@ public class ObjectInspector : BaseInspector
 		ImGuiX.Separator();
 
 		// Properties.
-		if ( ImGui.BeginChild( "##properties", Vector2.Zero, false, ImGuiWindowFlags.AlwaysVerticalScrollbar | ImGuiWindowFlags.NoBackground ) )
+		using ( ImGuiX.Scope scope = ImGuiX.Child( "##properties", Vector2.Zero, false, ImGuiWindowFlags.AlwaysVerticalScrollbar | ImGuiWindowFlags.NoBackground ) )
 		{
+			if ( !scope.Visible )
+				return;
+
 			foreach ( var (editorCategory, propertyEditors) in propertyEditors )
 			{
 				ImGuiX.TextBold( padding + editorCategory );
@@ -91,7 +94,5 @@ public class ObjectInspector : BaseInspector
 				ImGuiX.Separator();
 			}
 		}
-
-		ImGui.EndChild();
 	}
 }

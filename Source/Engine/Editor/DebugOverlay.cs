@@ -33,8 +33,11 @@ public static class DebugOverlay
 		ImGui.SetNextWindowPos( ImGui.GetMainViewport().WorkPos );
 		ImGui.SetNextWindowSize( ImGui.GetMainViewport().WorkSize );
 
-		if ( ImGui.Begin( "debugoverlay", ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoTitleBar ) )
+		using ( ImGuiX.Scope scope = ImGuiX.Begin( "debugoverlay", ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoTitleBar ) )
 		{
+			if ( !scope.Visible )
+				return;
+
 			position += (Vector2)ImGui.GetWindowPos();
 
 			//
@@ -61,7 +64,6 @@ public static class DebugOverlay
 			// https://github.com/ocornut/imgui/releases/tag/v1.89#:~:text=Instead%2C%20please-,submit%20an%20item,-%3A%0ABegin(...)
 			//
 			ImGui.Dummy( new Vector2( 0, 0 ) );
-			ImGui.End();
 		}
 	}
 

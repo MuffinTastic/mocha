@@ -59,13 +59,10 @@ public class SimplePropertyEditor : BasePropertyEditor
 	/// <inheritdoc/>
 	public sealed override void Draw()
 	{
-		if ( ReadOnly )
-			ImGui.BeginDisabled();
-
-		DrawInput();
-
-		if ( ReadOnly )
-			ImGui.EndDisabled();
+		using ( ImGuiX.DisabledIf( ReadOnly ) )
+		{
+			DrawInput();
+		}
 	}
 
 	/// <summary>

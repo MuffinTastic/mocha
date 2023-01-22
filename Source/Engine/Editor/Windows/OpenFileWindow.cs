@@ -39,37 +39,42 @@
 
 //	public override void Draw()
 //	{
-//		if ( ImGui.Begin( "Select File" ) )
+//		using ( ImGuiX.Scope windowScope = ImGuiX.Begin( "Select File" ) )
 //		{
+//			if ( !windowScope.Visible )
+//				return;
+
 //			ImGui.SetNextItemWidth( -1 );
 //			searchInput = ImGui.InputText( "##search_input", searchInput, MAX_INPUT_LENGTH );
 
-//			if ( ImGui.BeginChild( "##file_list", -1, -1 ) )
+//			using ( ImGuiX.Scope childScope = ImGuiX.Child( "##file_list", -1, -1 ) )
 //			{
-//				ImGui.BeginTable( "##file_List_table", 1, 0 );
+//				if ( !childScope.Visible )
+//					return;
 
-//				ImGui.TableSetupStretchColumn( "Name" );
-
-//				foreach ( var item in Matches )
+//				using ( ImGuiX.Scope tableScope = ImGuiX.Table( "##file_List_table", 1, 0 )
 //				{
-//					if ( !string.IsNullOrEmpty( searchInput ) && !item.Contains( searchInput ) )
-//						continue;
+//					if ( !tableScope.Visible )
+//						return;
 
-//					ImGui.TableNextRow();
-//					ImGui.TableNextColumn();
+//					ImGui.TableSetupStretchColumn( "Name" );
 
-//					if ( ImGui.Selectable( item ) )
+//					foreach ( var item in Matches )
 //					{
-//						OnSelected?.Invoke( item );
-//						Editor.EditorWindows.Remove( this );
+//						if ( !string.IsNullOrEmpty( searchInput ) && !item.Contains( searchInput ) )
+//							continue;
+
+//						ImGui.TableNextRow();
+//						ImGui.TableNextColumn();
+
+//						if ( ImGui.Selectable( item ) )
+//						{
+//							OnSelected?.Invoke( item );
+//							Editor.EditorWindows.Remove( this );
+//						}
 //					}
 //				}
-
-//				ImGui.EndTable();
-//				ImGui.EndChild();
 //			}
 //		}
-
-//		ImGui.End();
 //	}
 //}

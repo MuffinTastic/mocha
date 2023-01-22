@@ -31,8 +31,11 @@ public class Editor
 
 	private static void DrawMenuBar()
 	{
-		if ( ImGui.BeginMainMenuBar() )
+		using ( ImGuiX.Scope menuBarScope = ImGuiX.MainMenuBar() )
 		{
+			if ( !menuBarScope.Visible )
+				return;
+
 			ImGui.Dummy( new Vector2( 4, 0 ) );
 			ImGui.Text( "Mocha Engine" );
 			ImGui.Dummy( new Vector2( 4, 0 ) );
@@ -40,31 +43,33 @@ public class Editor
 			ImGui.Separator();
 			ImGui.Dummy( new Vector2( 4, 0 ) );
 
-			if ( ImGui.BeginMenu( "Window" ) )
+			using ( ImGuiX.Scope windowMenuScope = ImGuiX.Menu( "Window" ) )
 			{
-				foreach ( var window in EditorWindows )
+				if ( windowMenuScope.Visible )
 				{
-					var displayInfo = DisplayInfo.For( window );
-					if ( ImGui.MenuItem( displayInfo.Name ) )
-						window.isVisible = !window.isVisible;
+					foreach ( var window in EditorWindows )
+					{
+						var displayInfo = DisplayInfo.For( window );
+						if ( ImGui.MenuItem( displayInfo.Name ) )
+							window.isVisible = !window.isVisible;
+					}
+
+					if ( ImGui.MenuItem( "Performance Overlay" ) )
+						drawPerformanceOverlay = !drawPerformanceOverlay;
 				}
-
-				if ( ImGui.MenuItem( "Performance Overlay" ) )
-					drawPerformanceOverlay = !drawPerformanceOverlay;
-
-				ImGui.EndMenu();
 			}
 
 			ImGuiX.RenderViewDropdown();
 		}
-
-		ImGui.EndMainMenuBar();
 	}
 
 	private static void DrawStatusBar()
 	{
-		if ( ImGuiX.BeginMainStatusBar() )
+		using ( ImGuiX.Scope scope = ImGuiX.MainStatusBar() )
 		{
+			if ( !scope.Visible )
+				return;
+
 			ImGui.Text( $"{Screen.Size.X}x{Screen.Size.Y}" );
 
 			ImGui.Dummy( new Vector2( 4, 0 ) );
@@ -81,22 +86,21 @@ public class Editor
 			ImGui.Dummy( new Vector2( 4, 0 ) );
 			ImGui.Text( "Press ~ to toggle cursor" );
 		}
-
-		ImGuiX.EndMainStatusBar();
 	}
 
 	private static void DrawPerformanceOverlay()
 	{
-		if ( ImGuiX.BeginOverlay( "Time" ) )
+		using ( ImGuiX.Scope scope = ImGuiX.Overlay( "Time" ) )
 		{
+			if ( !scope.Visible )
+				return;
+
 			var gpuName = ImGuiX.GetGPUName();
 
 			ImGui.Text( $"GPU: {gpuName}" );
 			ImGui.Text( $"FPS: {Time.FPS}" );
 			ImGui.Text( $"Current time: {Time.Now}" );
 			ImGui.Text( $"Frame time: {(Time.Delta * 1000f).CeilToInt()}ms" );
-
-			ImGui.End();
 		}
 	}
 }

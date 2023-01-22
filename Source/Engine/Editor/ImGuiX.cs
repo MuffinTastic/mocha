@@ -2,6 +2,218 @@
 
 public static class ImGuiX
 {
+	public enum ScopeType
+	{
+		Window,
+		Child,
+		Disabled,
+		ListBox,
+		MainStatusBar,
+		MainMenuBar,
+		Menu,
+		Popup,
+		TabBar,
+		TabItem,
+		Table
+	}
+
+	public struct Scope : IDisposable
+	{
+		public required ScopeType Type;
+		public required bool Visible;
+
+		// ImGui is a bit inconsistent, in that EndChild has to be
+		// called regardless of the whether or not the child scope
+		// is visible.
+		public required bool CallEnd;
+
+		public void Dispose()
+		{
+			if ( !CallEnd )
+				return;
+
+			switch ( Type )
+			{
+				case ScopeType.Window:
+					ImGui.End();
+					break;
+
+				case ScopeType.Child:
+					ImGui.EndChild();
+					break;
+
+				case ScopeType.Disabled:
+					ImGui.EndDisabled();
+					break;
+
+				case ScopeType.ListBox:
+					ImGui.EndListBox();
+					break;
+
+				case ScopeType.MainStatusBar:
+					EndMainStatusBar();
+					break;
+
+				case ScopeType.MainMenuBar:
+					ImGui.EndMainMenuBar();
+					break;
+
+				case ScopeType.Menu:
+					ImGui.EndMenu();
+					break;
+
+				case ScopeType.Popup:
+					ImGui.EndPopup();
+					break;
+
+				case ScopeType.TabBar:
+					ImGui.EndTabItem();
+					break;
+
+				case ScopeType.TabItem:
+					ImGui.EndTabItem();
+					break;
+
+				case ScopeType.Table:
+					ImGui.EndTable();
+					break;
+			}
+		}
+	}
+
+	public static Scope Begin( string name, ImGuiWindowFlags flags )
+	{
+		bool visible = ImGui.Begin( name, flags );
+
+		return new Scope
+		{
+			Type = ScopeType.Window,
+			Visible = visible,
+			CallEnd = visible
+		};
+	}
+
+	public static Scope Begin( string name, ref bool isOpen, ImGuiWindowFlags flags )
+	{
+		bool visible = ImGui.Begin( name, ref isOpen, flags );
+
+		return new Scope
+		{
+			Type = ScopeType.Window,
+			Visible = visible,
+			CallEnd = visible
+		};
+	}
+
+	public static Scope Child( string name, Vector2 size )
+	{
+		bool visible = ImGui.BeginChild( name, size );
+
+		return new Scope
+		{
+			Type = ScopeType.Child,
+			Visible = visible,
+			CallEnd = true
+		};
+	}
+
+	public static Scope Child( string name, Vector2 size, bool border, ImGuiWindowFlags flags )
+	{
+		bool visible = ImGui.BeginChild( name, size, border, flags );
+
+		return new Scope
+		{
+			Type = ScopeType.Child,
+			Visible = visible,
+			CallEnd = true
+		};
+	}
+
+	public static Scope ListBox( string label, Vector2 size )
+	{
+		bool visible = ImGui.BeginListBox( label, size );
+
+		return new Scope
+		{
+			Type = ScopeType.ListBox,
+			Visible = visible,
+			CallEnd = visible
+		};
+	}
+
+	public static Scope MainMenuBar()
+	{
+		bool visible = ImGui.BeginMainMenuBar();
+
+		return new Scope
+		{
+			Type = ScopeType.MainMenuBar,
+			Visible = visible,
+			CallEnd = visible
+		};
+	}
+
+	public static Scope Popup( string name, ImGuiWindowFlags flags )
+	{
+		bool visible = ImGui.BeginPopup( name, flags);
+
+		return new Scope
+		{
+			Type = ScopeType.Popup,
+			Visible = visible,
+			CallEnd = visible
+		};
+	}
+
+	public static Scope TabBar( string label )
+	{
+		bool visible = ImGui.BeginTabBar( label );
+
+		return new Scope
+		{
+			Type = ScopeType.TabBar,
+			Visible = visible,
+			CallEnd = visible
+		};
+	}
+
+	public static Scope BeginTabItem( string label )
+	{
+		bool visible = ImGui.BeginTabItem( label );
+
+		return new Scope
+		{
+			Type = ScopeType.TabItem,
+			Visible = visible,
+			CallEnd = visible
+		};
+	}
+
+	public static Scope Table( string name, int column, ImGuiTableFlags flags )
+	{
+		bool visible = ImGui.BeginTable( name, column, flags );
+
+		return new Scope
+		{
+			Type = ScopeType.Table,
+			Visible = visible,
+			CallEnd = visible
+		};
+	}
+
+	public static Scope DisabledIf( bool disabled )
+	{
+		if ( disabled )
+			ImGui.BeginDisabled();
+
+		return new Scope
+		{
+			Type = ScopeType.Disabled,
+			Visible = true,
+			CallEnd = disabled
+		};
+	}
+
 	public static void SeparatorH()
 	{
 		ImGui.Dummy( new Vector2( 0, 4 ) );
@@ -28,14 +240,15 @@ public static class ImGuiX
 		ImGui.SetCursorPosY( curr + y );
 	}
 
-	public static bool BeginWindow( string name, ref bool isOpen )
+	public static Scope Window( string name, ref bool isOpen )
 	{
-		bool b = ImGui.Begin( name, ref isOpen,
-			ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysUseWindowPadding |
-			ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoScrollbar |
-			ImGuiWindowFlags.NoResize );
+		var flags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysUseWindowPadding |
+					ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoScrollbar |
+					ImGuiWindowFlags.NoResize;
 
-		if ( b )
+		Scope scope = Begin( name, ref isOpen, flags );
+
+		if ( scope.Visible )
 		{
 			if ( ImGui.GetWindowViewport().ID != ImGui.GetMainViewport().ID )
 			{
@@ -43,7 +256,7 @@ public static class ImGuiX
 			}
 		}
 
-		return b;
+		return scope;
 	}
 
 	public static void TextMonospace( string text )
@@ -71,9 +284,16 @@ public static class ImGuiX
 		Glue.Editor.TextSubheading( text );
 	}
 
-	public static bool BeginMainStatusBar()
+	public static Scope MainStatusBar()
 	{
-		return Glue.Editor.BeginMainStatusBar();
+		bool visible = Glue.Editor.BeginMainStatusBar();
+
+		return new Scope
+		{
+			Type = ScopeType.MainStatusBar,
+			Visible = visible,
+			CallEnd = visible
+		};
 	}
 
 	public static void EndMainStatusBar()
@@ -82,13 +302,13 @@ public static class ImGuiX
 		ImGui.End();
 	}
 
-	public static bool BeginOverlay( string name )
+	public static Scope Overlay( string name )
 	{
 		ImGui.SetNextWindowViewport( ImGui.GetMainViewport().ID );
 
-		bool b = ImGui.Begin( name, ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoInputs );
+		Scope scope = Begin( name, ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoInputs );
 
-		if ( b )
+		if ( scope.Visible )
 		{
 			Vector2 workPos = ImGui.GetMainViewport().WorkPos;
 
@@ -96,7 +316,7 @@ public static class ImGuiX
 			ImGui.SetWindowSize( new Vector2( -1, -1 ) );
 		}
 
-		return b;
+		return scope;
 	}
 
 	public static string GetGPUName()
@@ -255,13 +475,14 @@ public static class ImGuiX
 		ImGui.PushStyleVar( ImGuiStyleVar.WindowBorderSize, 0 );
 		ImGui.PushStyleVar( ImGuiStyleVar.WindowPadding, System.Numerics.Vector2.Zero );
 
-		if ( ImGui.Begin( "DockSpaceViewport_main", flags ) )
+		using ( Scope scope = Begin( "DockSpaceViewport_main", flags ) )
 		{
-			var dockspaceId = ImGui.GetID( "DockSpace" );
-			ImGui.DockSpace( dockspaceId, new System.Numerics.Vector2( 0, 0 ),
-				ImGuiDockNodeFlags.PassthruCentralNode | ImGuiDockNodeFlags.AutoHideTabBar );
-
-			ImGui.End();
+			if ( scope.Visible )
+			{
+				var dockspaceId = ImGui.GetID( "DockSpace" );
+				ImGui.DockSpace( dockspaceId, new System.Numerics.Vector2( 0, 0 ),
+					ImGuiDockNodeFlags.PassthruCentralNode | ImGuiDockNodeFlags.AutoHideTabBar );
+			}
 		}
 
 		var io = ImGui.GetIO();
@@ -311,15 +532,16 @@ public static class ImGuiX
 		SetCursorPosXRelative( iconSize );
 		SetCursorPosXRelative( 8 );
 
-		if ( ImGui.BeginChild( $"title##{text}{subtext}", new System.Numerics.Vector2( 0, heightTop - 8f ), true, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground ) )
+		using ( Scope scope = Child( $"title##{text}{subtext}", new System.Numerics.Vector2( 0, heightTop - 8f ), true, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground ) )
 		{
-			TextSubheading( text );
+			if ( scope.Visible )
+			{
+				TextSubheading( text );
 
-			SetCursorPosYRelative( -8f );
-			ImGui.Text( subtext );
+				SetCursorPosYRelative( -8f );
+				ImGui.Text( subtext );
+			}
 		}
-
-		ImGui.EndChild();
 
 		SetCursorPosXRelative( iconSize );
 	}
@@ -349,13 +571,18 @@ public static class ImGuiX
 
 	public static List<string> MenusSubmittedThisFrame { get; } = new();
 
-	public static bool BeginMenu( string name )
+	public static Scope Menu( string name )
 	{
 		SetCursorPosXRelative( 4 );
 		ImGui.SetNextWindowSize( new System.Numerics.Vector2( 250, -1 ) );
-		bool result = ImGui.BeginMenu( name );
+		bool visible = ImGui.BeginMenu( name );
 
-		return result;
+		return new Scope
+		{
+			Type = ScopeType.Menu,
+			Visible = visible,
+			CallEnd = visible
+		};
 	}
 
 	public static bool MenuItem( string icon, string text, bool enabled = false )
@@ -407,11 +634,6 @@ public static class ImGuiX
 		}
 
 		return result;
-	}
-
-	public static void EndMenu()
-	{
-		ImGui.EndMenu();
 	}
 
 	public static bool GradientButton( string text )

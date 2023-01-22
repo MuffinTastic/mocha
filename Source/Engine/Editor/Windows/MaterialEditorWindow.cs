@@ -165,12 +165,18 @@
 
 //	public override void Draw()
 //	{
-//		if ( ImGui.Begin( "Material Editor" ) )
+//		using ( ImGuiX.Scope windowScope = ImGuiX.Begin( "Material Editor" ) )
 //		{
+//			if ( !windowScope.Visible )
+//				return;
+
 //			DrawToolBar();
 
-//			if ( ImGui.BeginTable( "##material_editor", 3, 0 ) )
+//			using ( ImGuiX.Scope tableScope = ImGuiX.BeginTable( "##material_editor", 3, 0 ) )
 //			{
+//				if ( !tableScope.Visible )
+//					return;
+
 //				ImGui.TableSetupFixedColumn( "Materials", 128.0f );
 //				ImGui.TableSetupFixedColumn( "Properties", 256.0f );
 //				ImGui.TableSetupStretchColumn( "Preview" );
@@ -181,68 +187,67 @@
 //				//
 //				//
 //				//
-//				ImGui.BeginChild( "##materials", -1, -1 );
-
+//				using ( ImGuiX.Scope materialsScope = ImGuiX.Child( "##materials", -1, -1 ) )
 //				{
-//					ImGui.Text( "Materials" );
-//					ImGui.SeparatorH();
-
-//					for ( int i = 0; i < LoadedMaterials.Count; ++i )
+//					if ( materialsScope.Visible )
 //					{
-//						var materialName = LoadedMaterials[i].Path;
-//						if ( ImGui.Selectable( materialName ) )
+//						ImGui.Text( "Materials" );
+//						ImGui.SeparatorH();
+
+//						for ( int i = 0; i < LoadedMaterials.Count; ++i )
 //						{
-//							CurrentMaterialIndex = i;
+//							var materialName = LoadedMaterials[i].Path;
+//							if ( ImGui.Selectable( materialName ) )
+//							{
+//								CurrentMaterialIndex = i;
+//							}
 //						}
 //					}
 //				}
 
-//				ImGui.EndChild();
 //				ImGui.TableNextColumn();
 
 //				//
 //				//
 //				//
-//				ImGui.BeginChild( "##material_properties", -1, -1 );
-
+//				using ( ImGuiX.Scope materialPropertiesScope = ImGuiX.Child( "##material_properties", -1, -1 ) )
 //				{
-//					ImGui.Text( "Properties" );
-//					ImGui.SeparatorH();
+//					if ( materialPropertiesScope.Visible )
+//					{
+//						ImGui.Text( "Properties" );
+//						ImGui.SeparatorH();
 
-//					if ( CurrentMaterial == null )
-//					{
-//						ImGui.Text( "No material selected." );
-//					}
-//					else
-//					{
-//						DrawMaterialProperties();
+//						if ( CurrentMaterial == null )
+//						{
+//							ImGui.Text( "No material selected." );
+//						}
+//						else
+//						{
+//							DrawMaterialProperties();
+//						}
 //					}
 //				}
 
-//				ImGui.EndChild();
 //				ImGui.TableNextColumn();
 
 //				//
 //				//
 //				//
-//				ImGui.BeginChild( "##material_preview", -1, -1 );
-
+//				using ( ImGuiX.Scope materialPreviewScope = ImGuiX.Child( "##material_preview", -1, -1 ) )
 //				{
-//					ImGui.Text( "Preview" );
-//					ImGui.SeparatorH();
-
-//					if ( CurrentMaterial != null && CurrentMaterial?.DiffuseTexture != null )
+//					if ( materialPreviewScope.Visible )
 //					{
-//						var width = ImGui.GetColumnWidth();
-//						ImGui.Image( GetTexture( CurrentMaterial?.DiffuseTexture ).NativeTexture, (int)width, (int)width );
+//						ImGui.Text( "Preview" );
+//						ImGui.SeparatorH();
+
+//						if ( CurrentMaterial != null && CurrentMaterial?.DiffuseTexture != null )
+//						{
+//							var width = ImGui.GetColumnWidth();
+//							ImGui.Image( GetTexture( CurrentMaterial?.DiffuseTexture ).NativeTexture, (int)width, (int)width );
+//						}
 //					}
 //				}
-
-//				ImGui.EndChild();
-//				ImGui.EndTable();
 //			}
 //		}
-
-//		ImGui.End();
 //	}
 //}
